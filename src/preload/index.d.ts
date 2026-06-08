@@ -23,10 +23,18 @@ interface AppsAPI {
   setCaptureSource: (sourceId: string) => Promise<void>
 }
 
+interface WindowAPI {
+  minimize: () => void
+  maximize: () => void
+  close: () => void
+}
+
 interface API {
   permissions: PermissionsAPI
   drivers: DriversAPI
   apps: AppsAPI
+  window: WindowAPI
+  platform: string
 }
 
 declare global {

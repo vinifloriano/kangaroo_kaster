@@ -769,11 +769,22 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!window.api?.drivers) return
     try {
       const status = await window.api.drivers.checkStatus()
-      setDriverStatus(status)
+      
+      // Fallback: if main process says not installed, but we see virtual devices in the list,
+      // then it IS installed from our perspective.
+      if (!status.installed && devices.some(d => isVirtualDeviceLabel(d.label))) {
+        setDriverStatus({
+          installed: true,
+          type: window.api.platform === 'win32' ? 'win-active' : 'mac-active',
+          message: 'Virtual Audio Driver detected in system devices.'
+        })
+      } else {
+        setDriverStatus(status)
+      }
     } catch (err) {
       console.error('Failed to check driver status:', err)
     }
-  }, [])
+  }, [devices])
 
   const installDriver = useCallback(async () => {
     if (!window.api?.drivers) return

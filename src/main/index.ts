@@ -13,7 +13,8 @@ function createWindow(): void {
     minHeight: 680,
     show: false,
     backgroundColor: '#0f172a',
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hidden',
+    autoHideMenuBar: true,
     trafficLightPosition: { x: 16, y: 14 },
     icon: join(__dirname, '../../resources/icon.png'),
     webPreferences: {
@@ -21,6 +22,14 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  // Window control handlers
+  ipcMain.on('window:minimize', () => mainWindow.minimize())
+  ipcMain.on('window:maximize', () => {
+    if (mainWindow.isMaximized()) mainWindow.unmaximize()
+    else mainWindow.maximize()
+  })
+  ipcMain.on('window:close', () => mainWindow.close())
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -154,16 +163,34 @@ ipcMain.handle('drivers:checkStatus', async () => {
     })
   } else if (process.platform === 'win32') {
     // Check for VB-Cable on Windows via common installation paths or registry if possible
-    // For now, let's look for the driver files in System32/drivers
-    const winDriverExists = 
-      existsSync('C:\\Windows\\System32\\drivers\\vbcable_x64.sys') ||
-      existsSync('C:\\Windows\\System32\\drivers\\vbcable.sys')
+    // We check for multiple possible filenames for the standard cable and variants A, B, C, D
+    const driverFiles = [
+      'vbcable_x64.sys',
+      'vbcable_64.sys',
+      'vbcable.sys',
+      'vbcable_a_x64.sys',
+      'vbcable_a_64.sys',
+      'vbcable_b_x64.sys',
+      'vbcable_b_64.sys',
+      'vbcable_c_x64.sys',
+      'vbcable_c_64.sys',
+      'vbcable_d_x64.sys',
+      'vbcable_d_64.sys',
+      'vbaudio_vmvaio64_win10.sys',
+      'vbaudio_vmvaio.sys',
+      'vbhifi_64.sys',
+      'vbhifi.sys'
+    ]
+    
+    const winDriverExists = driverFiles.some(file => 
+      existsSync(join('C:\\Windows\\System32\\drivers', file))
+    )
     
     if (winDriverExists) {
       return {
         installed: true,
         type: 'win-active',
-        message: 'VB-Cable driver is installed and active.'
+        message: 'VB-Cable or VB-Audio driver is installed and active.'
       }
     }
 

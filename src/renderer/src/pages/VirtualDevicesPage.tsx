@@ -136,7 +136,9 @@ export default function VirtualDevicesPage({ onNavigate }: VirtualDevicesPagePro
               <p className="text-xs text-white/50 mt-1 max-w-2xl leading-relaxed">
                 {driverStatus.type === 'mac-inactive'
                   ? 'BlackHole is installed via Homebrew, but macOS has not loaded the driver plug-in into CoreAudio yet. A system reboot or manual CoreAudio service reload is required to activate the loopback paths.'
-                  : 'To route virtual audio channels (like application sounds, music players, and mixer outputs) globally on your operating system, you need the virtual audio driver. Kangaroo Kaster can install this driver directly.'}
+                  : window.api.platform === 'win32'
+                    ? 'To route virtual audio channels (like application sounds, music players, and mixer outputs) globally on Windows, you need the VB-Cable driver. Please download and install it manually from the official website.'
+                    : 'To route virtual audio channels (like application sounds, music players, and mixer outputs) globally on your operating system, you need the virtual audio driver. Kangaroo Kaster can install this driver directly on macOS via Homebrew.'}
               </p>
 
               {/* Actions */}
@@ -175,7 +177,7 @@ export default function VirtualDevicesPage({ onNavigate }: VirtualDevicesPagePro
                       </button>
                     ) : (
                       <a
-                        href={process.platform === 'win32' ? 'https://vb-audio.com/Cable/' : 'https://github.com/ExistentialAudio/BlackHole'}
+                        href={window.api.platform === 'win32' ? 'https://vb-audio.com/Cable/' : 'https://github.com/ExistentialAudio/BlackHole'}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20 text-xs font-bold hover:bg-amber-500/25 transition-all"
@@ -254,7 +256,7 @@ export default function VirtualDevicesPage({ onNavigate }: VirtualDevicesPagePro
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${driverStatus.installed ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse-slow`} />
           <span className="text-xs font-mono text-white/50">
-            CoreAudio: {driverStatus.installed ? 'Virtual Audio Driver Active' : 'Virtual Audio Driver Missing'}
+            {window.api.platform === 'darwin' ? 'CoreAudio' : 'Windows Audio'}: {driverStatus.installed ? 'Virtual Audio Driver Active' : 'Virtual Audio Driver Missing'}
           </span>
         </div>
       </div>
