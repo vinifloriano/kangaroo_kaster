@@ -20,7 +20,14 @@
     "type": "git",
     "url": "git+https://github.com/vinifloriano/kangaroo-kaster.git"
   },
-  "keywords": ["caster", "streaming", "mixer", "soundboard", "virtual-devices", "broadcast"],
+  "keywords": [
+    "caster",
+    "streaming",
+    "mixer",
+    "soundboard",
+    "virtual-devices",
+    "broadcast"
+  ],
   "author": "Vinicius Floriano",
   "license": "ISC",
   "type": "commonjs",

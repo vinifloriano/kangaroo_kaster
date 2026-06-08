@@ -5,12 +5,14 @@ import {
   Headphones,
   Mic,
   Info,
-  Moon,
-  Sun,
   Volume2,
   RefreshCw,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Radio,
+  Video,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { useAudioEngine } from '../services/AudioEngine'
 
@@ -30,8 +32,16 @@ export default function SettingsPage() {
 
   const [sampleRate, setSampleRate] = useState('48000')
   const [bufferSize, setBufferSize] = useState('128')
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [loading, setLoading] = useState(false)
+  
+  // Broadcast State
+  const [streamKey, setStreamKey] = useState('')
+  const [showKey, setShowKey] = useState(false)
+  const [rtmpUrl, setRtmpUrl] = useState('rtmp://live.twitch.tv/app/')
+  
+  // Recording State
+  const [recordingFormat, setRecordingFormat] = useState('mp4')
+  const [recordingPath, setRecordingPath] = useState('~/Movies/KangarooKaster')
 
   const inputDevices = devices.filter((d) => d.kind === 'audioinput')
   const outputDevices = devices.filter((d) => d.kind === 'audiooutput')
@@ -43,7 +53,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-8 max-w-3xl pb-12">
       {/* Header */}
       <div>
         <p className="text-xs font-semibold text-brand-400 uppercase tracking-widest mb-1">
@@ -53,7 +63,7 @@ export default function SettingsPage() {
           <span className="gradient-text">Settings</span>
         </h1>
         <p className="text-sm text-white/30 mt-1">
-          Configure audio devices, performance, and appearance
+          Global application configuration, hardware routing, and broadcast engine
         </p>
       </div>
 
@@ -87,24 +97,12 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {permissionStatus === 'denied' && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-          <AlertTriangle size={18} className="text-red-400 shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-red-400">Microphone Access Denied</p>
-            <p className="text-xs text-red-400/60 mt-0.5">
-              Go to System Settings → Privacy & Security → Microphone to enable access.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Audio Devices */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
             <Volume2 size={16} className="text-brand-400" />
-            Audio Devices
+            Hardware Routing
           </h2>
           <button
             onClick={handleRefresh}
@@ -175,11 +173,99 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Broadcast & Streaming */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
+          <Radio size={16} className="text-brand-400" />
+          Broadcast & Streaming
+        </h2>
+
+        <div className="glass-sm p-5 space-y-5">
+          <div>
+            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 block">
+              RTMP URL
+            </label>
+            <input
+              type="text"
+              value={rtmpUrl}
+              onChange={(e) => setRtmpUrl(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/80 outline-none focus:border-brand-500/30 transition-colors"
+              placeholder="rtmp://..."
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 block">
+              Stream Key
+            </label>
+            <div className="relative">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={streamKey}
+                onChange={(e) => setStreamKey(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/80 outline-none focus:border-brand-500/30 transition-colors pr-12"
+                placeholder="live_..."
+              />
+              <button
+                onClick={() => setShowKey(!showKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors"
+              >
+                {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Local Recording */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
+          <Video size={16} className="text-brand-400" />
+          Local Recording
+        </h2>
+
+        <div className="glass-sm p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 block">
+                Recording Format
+              </label>
+              <select
+                value={recordingFormat}
+                onChange={(e) => setRecordingFormat(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/80 outline-none focus:border-brand-500/30 transition-colors appearance-none cursor-pointer"
+              >
+                <option value="mp4" className="bg-surface-800 text-white">MPEG-4 (.mp4)</option>
+                <option value="mkv" className="bg-surface-800 text-white">Matroska (.mkv)</option>
+                <option value="mov" className="bg-surface-800 text-white">QuickTime (.mov)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 block">
+              Output Path
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={recordingPath}
+                onChange={(e) => setRecordingPath(e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/80 outline-none focus:border-brand-500/30 transition-colors"
+              />
+              <button className="px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-xs font-semibold hover:bg-white/[0.1] transition-all">
+                Browse
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Performance */}
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
           <Settings size={16} className="text-brand-400" />
-          Performance
+          Engine Performance
         </h2>
 
         <div className="glass-sm p-5 space-y-5">
@@ -214,42 +300,6 @@ export default function SettingsPage() {
                 <option value="512" className="bg-surface-800 text-white">512 samples (~10.7ms)</option>
               </select>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Appearance */}
-      <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider flex items-center gap-2">
-          <Moon size={16} className="text-brand-400" />
-          Appearance
-        </h2>
-
-        <div className="glass-sm p-5">
-          <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3 block">
-            Theme
-          </label>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setTheme('dark')}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all ${
-                theme === 'dark'
-                  ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
-                  : 'bg-white/[0.03] text-white/30 border border-white/[0.06] hover:text-white/60'
-              }`}
-            >
-              <Moon size={16} /> Dark
-            </button>
-            <button
-              onClick={() => setTheme('light')}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all ${
-                theme === 'light'
-                  ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
-                  : 'bg-white/[0.03] text-white/30 border border-white/[0.06] hover:text-white/60'
-              }`}
-            >
-              <Sun size={16} /> Light
-            </button>
           </div>
         </div>
       </section>
