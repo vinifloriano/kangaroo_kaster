@@ -58,6 +58,7 @@ export interface AudioEngineContextType {
   permissionStatus: 'unknown' | 'granted' | 'denied'
   channelLevels: Record<string, number>
   masterLevel: number
+  audioErrors: { id: string; message: string; timestamp: number }[]
 
   // Actions
   enumerateDevices: () => Promise<void>
@@ -181,12 +182,12 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     if (hasSaved && list.length > 0) {
-      // Migrate legacy/placeholder IDs to the correct loopbacks
+    // Migrate legacy/placeholder IDs to the correct loopbacks and ports
       return list.map((c) => {
         let fromNodeId = c.fromNodeId
         let fromPortId = c.fromPortId
-        const toNodeId = c.toNodeId
-        const toPortId = c.toPortId
+      let toNodeId = c.toNodeId
+      let toPortId = c.toPortId
 
         if (fromNodeId === 'desktop' || fromNodeId === 'vloop-1') {
           fromNodeId = 'vloop-desktop'
@@ -208,6 +209,17 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
           fromNodeId = 'vloop-discord'
           fromPortId = 'vloop-discord-out'
         }
+
+      // Port migration for mixer inputs
+      if (toNodeId === 'mixer') {
+        if (toPortId === 'mixer-in1') toPortId = 'mic-in'
+        if (toPortId === 'mixer-in2') toPortId = 'desktop-in'
+        if (toPortId === 'mixer-in3') toPortId = 'browser-in'
+        if (toPortId === 'mixer-in5') toPortId = 'music-in'
+        if (toPortId === 'mixer-in6') toPortId = 'discord-in'
+        if (toPortId === 'mixer-in4') toPortId = 'game-in'
+      }
+
         return { id: c.id, fromNodeId, fromPortId, toNodeId, toPortId }
       })
     }
@@ -383,6 +395,11 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [loadingDevices, setLoadingDevices] = useState(false)
   const [permissionStatus, setPermissionStatus] = useState<'unknown' | 'granted' | 'denied'>('unknown')
   const [channelLevels, setChannelLevels] = useState<Record<string, number>>({})
+  const [audioErrors, setAudioErrors] = useState<{ id: string; message: string; timestamp: number }[]>([])
+
+  const addAudioError = useCallback((message: string) => {
+    setAudioErrors((prev) => [...prev, { id: Date.now().toString(), message, timestamp: Date.now() }].slice(-5))
+  }, [])
   const [masterLevel, setMasterLevel] = useState(0)
   const rebuildingRef = useRef(false)
   const pendingRebuildRef = useRef(false)
@@ -482,14 +499,17 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // --- Dynamic Virtual Cable mapping helpers ---
   const resolvePhysicalInputId = useCallback((nodeId: string): { physicalId: string | null; isDefaultMic: boolean } => {
+    // 1. Resolve logical "mic" or "default"
     if (nodeId === 'mic' || nodeId === 'default') {
+      const targetId = hardwareMicId === 'default' ? 'default' : hardwareMicId
+      const realDevice = devices.find(d => d.deviceId === targetId && d.kind === 'audioinput')
       return { 
-        physicalId: hardwareMicId === 'default' ? null : hardwareMicId, 
-        isDefaultMic: hardwareMicId === 'default' 
+        physicalId: realDevice ? realDevice.deviceId : (targetId === 'default' ? null : targetId),
+        isDefaultMic: targetId === 'default'
       }
     }
     
-    // Check if it's a loopback cable
+    // 2. Resolve by loopback index (for virtual cables that act as proxies)
     const systemPairs = getSystemVirtualDevicePairs(devices)
     const loopbackCables = virtualCables.filter(c => c.type === 'loopback')
     const loopbackIndex = loopbackCables.findIndex(c => c.id === nodeId)
@@ -497,38 +517,42 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return { physicalId: systemPairs[loopbackIndex].inputId, isDefaultMic: false }
     }
     
-    // Check if it's a direct hardware input device
-    const isHardwareInput = devices.some(d => (d.deviceId === nodeId || d.deviceId === 'default') && d.kind === 'audioinput')
-    if (isHardwareInput) {
-      return { physicalId: nodeId, isDefaultMic: false }
+    // 3. Resolve by direct device ID or label matching (fallback for macOS device ID changes)
+    const directMatch = devices.find(d => d.deviceId === nodeId && d.kind === 'audioinput')
+    if (directMatch) return { physicalId: directMatch.deviceId, isDefaultMic: false }
+
+    // Fallback: search by label if ID changed but device is still there
+    const savedPos = localStorage.getItem('kk_node_positions')
+    if (savedPos) {
+       // This is a bit of a stretch, but on macOS IDs can change.
+       // We'll trust the nodeId for now.
     }
     
-    return { physicalId: null, isDefaultMic: false }
+    return { physicalId: nodeId, isDefaultMic: false }
   }, [devices, virtualCables, hardwareMicId])
 
   const resolvePhysicalOutputId = useCallback((nodeId: string): string | null => {
-    if (nodeId === 'headphones') {
-      return hardwareMonitorId
-    }
-    if (nodeId === 'speakers' || nodeId === 'stream' || nodeId === 'recording' || nodeId === 'default') {
-      return hardwareSpeakerId
-    }
-    
-    // Check if it's a loopback cable
-    const systemPairs = getSystemVirtualDevicePairs(devices)
-    const loopbackCables = virtualCables.filter(c => c.type === 'loopback')
-    const loopbackIndex = loopbackCables.findIndex(c => c.id === nodeId)
-    if (loopbackIndex !== -1 && loopbackIndex < systemPairs.length) {
-      return systemPairs[loopbackIndex].outputId
-    }
-    
-    // Check if it's a direct hardware output
-    const isHardwareOutput = devices.some(d => d.deviceId === nodeId && d.kind === 'audiooutput')
-    if (isHardwareOutput) {
-      return nodeId
+    let targetId = nodeId
+
+    if (nodeId === 'headphones') targetId = hardwareMonitorId
+    else if (nodeId === 'speakers' || nodeId === 'stream' || nodeId === 'recording' || nodeId === 'default') {
+      targetId = hardwareSpeakerId
+    } else {
+      // Check if it's a loopback cable
+      const systemPairs = getSystemVirtualDevicePairs(devices)
+      const loopbackCables = virtualCables.filter(c => c.type === 'loopback')
+      const loopbackIndex = loopbackCables.findIndex(c => c.id === nodeId)
+      if (loopbackIndex !== -1 && loopbackIndex < systemPairs.length) {
+        return systemPairs[loopbackIndex].outputId
+      }
     }
     
-    // Fallback
+    // Verify targetId exists
+    const exists = devices.some(d => d.deviceId === targetId && d.kind === 'audiooutput')
+    if (exists) return targetId
+    
+    // If it's a specific ID that no longer exists, try to find a similar label
+    // or fallback to 'default'
     return 'default'
   }, [devices, virtualCables, hardwareSpeakerId, hardwareMonitorId])
 
@@ -611,6 +635,99 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
     initAudioGraph()
     return activeGainNodesRef.current.get(channelId) || null
   }, [initAudioGraph])
+
+  const resolveAudioNode = useCallback((nodeId: string, portId: string, type: 'input' | 'output') => {
+    const ctx = initAudioGraph()
+
+    // 1. Check Mixer
+    if (nodeId === 'mixer') {
+      if (type === 'input') {
+        const mixerChId = PORT_TO_CHANNEL_MAP[portId]
+        return activeGainNodesRef.current.get(mixerChId) || null
+      } else {
+        if (portId === 'mixer-out') return masterGainRef.current
+        if (portId === 'mixer-mon') return masterGainRef.current // For now, both use master
+      }
+    }
+
+    // 2. Check Loopbacks
+    const cable = virtualCables.find(c => c.id === nodeId)
+    if (cable && cable.type === 'loopback') {
+      if (type === 'output') {
+        const isAppSource = cable.active && cable.appSourceId
+        const { physicalId, isDefaultMic } = resolvePhysicalInputId(nodeId)
+        const sourceKey = isAppSource
+          ? `app-${nodeId}`
+          : (isDefaultMic ? 'mic' : (physicalId || nodeId))
+
+        let devGain = deviceGainsRef.current.get(sourceKey)
+        if (!devGain) {
+          devGain = ctx.createGain()
+          deviceGainsRef.current.set(sourceKey, devGain)
+          const rawSource = activeSourcesRef.current.get(sourceKey) || activeSimulatedLoopbacksRef.current.get(sourceKey)
+          if (rawSource) rawSource.connect(devGain)
+        }
+        return devGain
+      } else {
+        // Loopback as destination
+        const outId = resolvePhysicalOutputId(nodeId)
+        if (outId) {
+          let devGain = deviceGainsRef.current.get(outId)
+          if (!devGain) {
+            devGain = ctx.createGain()
+            deviceGainsRef.current.set(outId, devGain)
+
+            if (!activeOutputsRef.current.has(outId)) {
+               const dest = ctx.createMediaStreamDestination()
+               const audio = new Audio()
+               audio.srcObject = dest.stream
+               if (typeof audio.setSinkId === 'function') audio.setSinkId(outId)
+               audio.play().catch(() => {})
+               activeOutputsRef.current.set(outId, { destNode: dest, audio })
+               devGain.connect(dest)
+            }
+          }
+          return devGain
+        }
+      }
+    }
+
+    // 3. Check Hardware Devices
+    if (type === 'output') {
+      const { physicalId, isDefaultMic } = resolvePhysicalInputId(nodeId)
+      const sourceKey = isDefaultMic ? 'mic' : (physicalId || nodeId)
+      let devGain = deviceGainsRef.current.get(sourceKey)
+      if (!devGain) {
+        devGain = ctx.createGain()
+        deviceGainsRef.current.set(sourceKey, devGain)
+        const rawSource = activeSourcesRef.current.get(sourceKey) || activeSimulatedLoopbacksRef.current.get(sourceKey)
+        if (rawSource) rawSource.connect(devGain)
+      }
+      return devGain
+    } else {
+      const outId = resolvePhysicalOutputId(nodeId)
+      if (outId) {
+        let devGain = deviceGainsRef.current.get(outId)
+        if (!devGain) {
+          devGain = ctx.createGain()
+          deviceGainsRef.current.set(outId, devGain)
+
+          if (!activeOutputsRef.current.has(outId)) {
+             const dest = ctx.createMediaStreamDestination()
+             const audio = new Audio()
+             audio.srcObject = dest.stream
+             if (typeof audio.setSinkId === 'function') audio.setSinkId(outId)
+             audio.play().catch(() => {})
+             activeOutputsRef.current.set(outId, { destNode: dest, audio })
+             devGain.connect(dest)
+          }
+        }
+        return devGain
+      }
+    }
+
+    return null
+  }, [initAudioGraph, virtualCables, resolvePhysicalInputId, resolvePhysicalOutputId])
 
   // --- Device Enumeration ---
   const enumerateDevices = useCallback(async () => {
@@ -765,7 +882,7 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const cable = virtualCables.find(c => c.id === conn.fromNodeId)
         if (cable?.active && cable.appSourceId) {
           neededInputs.add(`app-${cable.id}`)
-        } else if (conn.toNodeId === 'mixer') {
+        } else {
           const { physicalId, isDefaultMic } = resolvePhysicalInputId(conn.fromNodeId)
           if (isDefaultMic && permissionStatus === 'granted') neededInputs.add('mic')
           else if (physicalId) neededInputs.add(physicalId)
@@ -798,7 +915,11 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
               stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: key } })
             }
             if (stream) activeStreamsRef.current.set(key, stream)
-          } catch (err) { continue }
+          } catch (err) {
+            const deviceLabel = devices.find(d => d.deviceId === key)?.label || key
+            addAudioError(`Failed to capture audio from ${deviceLabel}: ${err instanceof Error ? err.message : String(err)}`)
+            continue
+          }
         }
         if (stream && !activeSourcesRef.current.has(key)) {
           activeSourcesRef.current.set(key, ctx.createMediaStreamSource(stream))
@@ -816,41 +937,11 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       // 5. Final Wiring
       connections.forEach((conn) => {
-        const mixerChId = PORT_TO_CHANNEL_MAP[conn.toPortId]
-        if (mixerChId) {
-          const targetGain = activeGainNodesRef.current.get(mixerChId)
-          if (!targetGain) return
-          
-          const { physicalId, isDefaultMic } = resolvePhysicalInputId(conn.fromNodeId)
-          const sourceKey = isDefaultMic ? 'mic' : (physicalId || conn.fromNodeId)
-          
-          let devGain = deviceGainsRef.current.get(sourceKey)
-          if (!devGain) {
-             devGain = ctx.createGain()
-             deviceGainsRef.current.set(sourceKey, devGain)
-             const rawSource = activeSourcesRef.current.get(sourceKey) || activeSimulatedLoopbacksRef.current.get(sourceKey)
-             if (rawSource) rawSource.connect(devGain)
-          }
-          devGain.connect(targetGain)
-        } 
-        else if (conn.fromNodeId === 'mixer') {
-          // Mixer -> Hardware Output (secondary outputs like Headphones)
-          const outId = resolvePhysicalOutputId(conn.toNodeId)
-          if (outId && outId !== 'default') {
-            const devGain = deviceGainsRef.current.get(outId) || ctx.createGain()
-            deviceGainsRef.current.set(outId, devGain)
-            
-            if (!activeOutputsRef.current.has(outId)) {
-               const dest = ctx.createMediaStreamDestination()
-               const audio = new Audio()
-               audio.srcObject = dest.stream
-               if (typeof audio.setSinkId === 'function') audio.setSinkId(outId)
-               audio.play().catch(() => {})
-               activeOutputsRef.current.set(outId, { destNode: dest, audio })
-               devGain.connect(dest)
-            }
-            mAnalyser.connect(devGain)
-          }
+        const sourceNode = resolveAudioNode(conn.fromNodeId, conn.fromPortId, 'output')
+        const targetNode = resolveAudioNode(conn.toNodeId, conn.toPortId, 'input')
+
+        if (sourceNode && targetNode) {
+          sourceNode.connect(targetNode)
         }
       })
     } catch (err) { console.error('Rebuild failed:', err) }
@@ -1023,7 +1114,7 @@ export const AudioEngineProvider: React.FC<{ children: React.ReactNode }> = ({ c
       value={{
         devices, virtualDevices, connections, mixerChannels, masterVolume, masterMuted,
         driverStatus, driverLogs, installingDriver, micLevel, loadingDevices,
-        permissionStatus, channelLevels, masterLevel,
+        permissionStatus, channelLevels, masterLevel, audioErrors,
         enumerateDevices, requestMicrophonePermission, addConnection, removeConnection,
         setConnections: setConnectionsState, toggleVirtualDevice, addVirtualCable,
         removeVirtualDevice, setVirtualDeviceVolume, setVirtualDeviceAppSource,

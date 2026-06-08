@@ -213,24 +213,35 @@ app.whenReady().then(() => {
       callback()
       return
     }
+
     const sourceId = pendingCaptureSources.get(request.webContents.id)
     if (sourceId) {
       pendingCaptureSources.delete(request.webContents.id)
-      desktopCapturer.getSources({ types: ['window', 'screen'] }).then((sources) => {
-        const source = sources.find((s) => s.id === sourceId)
-        if (source) {
-          callback({
-            video: source,
-            audio: source, // Use the same source for audio (per-app audio)
-            enableLocalEcho: false
-          })
-        } else {
-          callback() // Cancel if source not found
-        }
-      })
+
+      desktopCapturer
+        .getSources({
+          types: ['window', 'screen'],
+          thumbnailSize: { width: 0, height: 0 }
+        })
+        .then((sources) => {
+          const source = sources.find((s) => s.id === sourceId)
+          if (source) {
+            callback({
+              video: source,
+              audio: 'loopback', // Use loopback for per-app audio on supported platforms
+              enableLocalEcho: false
+            })
+          } else {
+            console.error(`Source ${sourceId} not found for capture`)
+            callback() // Cancel if source not found
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to get sources in handler:', err)
+          callback()
+        })
     } else {
-      // If no pending source, allow default behavior (shows picker)
-      // or we can just cancel to prevent unexpected pickers
+      // If no pending source, cancel to prevent unexpected pickers
       callback()
     }
   })
