@@ -378,12 +378,12 @@ export default function RouterPage({ onNavigate }: RouterPageProps) {
       color: '#8b5cf6',
       category: 'processor',
       ports: [
-        { id: 'mixer-in1', label: 'In 1 (Mic)', type: 'input' },
-        { id: 'mixer-in2', label: 'In 2 (Desktop)', type: 'input' },
-        { id: 'mixer-in3', label: 'In 3 (Browser)', type: 'input' },
-        { id: 'mixer-in5', label: 'In 4 (Music)', type: 'input' },
-        { id: 'mixer-in6', label: 'In 5 (Discord)', type: 'input' },
-        { id: 'mixer-in4', label: 'In 6 (Game)', type: 'input' },
+        { id: 'mic-in', label: 'In 1 (Mic)', type: 'input' },
+        { id: 'desktop-in', label: 'In 2 (Desktop)', type: 'input' },
+        { id: 'browser-in', label: 'In 3 (Browser)', type: 'input' },
+        { id: 'music-in', label: 'In 4 (Music)', type: 'input' },
+        { id: 'discord-in', label: 'In 5 (Discord)', type: 'input' },
+        { id: 'game-in', label: 'In 6 (Game)', type: 'input' },
         { id: 'mixer-out', label: 'Master Out', type: 'output' },
         { id: 'mixer-mon', label: 'Monitor', type: 'output' }
       ],
@@ -399,7 +399,7 @@ export default function RouterPage({ onNavigate }: RouterPageProps) {
         label: v.name,
         icon: '🔗',
         color: '#06b6d4',
-        category: 'source',
+        category: 'processor',
         ports: [
           { id: `${v.id}-in`, label: 'In', type: 'input' },
           { id: `${v.id}-out`, label: 'Out', type: 'output' }
