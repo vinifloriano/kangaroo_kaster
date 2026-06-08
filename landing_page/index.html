@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kangaroo Kaster — The Ultimate Casting & Streaming App</title>
+  <meta name="description"
+    content="Kangaroo Kaster is the most powerful caster app ever built. Professional mixer, virtual audio devices, soundboard, and broadcast tools — all in one stunning interface." />
+  <meta name="keywords"
+    content="caster, streaming, mixer, virtual devices, soundboard, broadcast, OBS alternative, audio routing" />
+  <meta property="og:title" content="Kangaroo Kaster — The Ultimate Casting & Streaming App" />
+  <meta property="og:description"
+    content="Professional mixer, virtual audio devices, soundboard, and broadcast tools — all in one stunning interface." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM — TOKENS
+       ============================================================ */
+    :root {
+      /* Palette */
+      --bg-primary: #06060c;
+      --bg-secondary: #0c0c18;
+      --bg-card: rgba(14, 14, 30, 0.65);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border-glass: rgba(255, 255, 255, 0.06);
+
+      --accent-purple: #a855f7;
+      --accent-cyan: #22d3ee;
+      --accent-pink: #ec4899;
+      --accent-green: #34d399;
+      --accent-orange: #f97316;
+      --accent-yellow: #facc15;
+
+      --text-primary: #f0f0f8;
+      --text-secondary: #9494b8;
+      --text-muted: #5a5a7a;
+
+      --gradient-hero: linear-gradient(135deg, #a855f7 0%, #6366f1 40%, #22d3ee 100%);
+      --gradient-card: linear-gradient(160deg, rgba(168, 85, 247, 0.12) 0%, rgba(34, 211, 238, 0.08) 100%);
+      --gradient-glow: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.25) 0%, transparent 60%);
+
+      /* Typography */
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      /* Spacing */
+      --section-pad: clamp(64px, 8vw, 120px);
+      --container: 1280px;
+
+      /* Radius */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-xl: 32px;
+
+      /* Transitions */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    /* ============================================================
+       UTILITY CLASSES
+       ============================================================ */
+    .container {
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(168, 85, 247, 0.12);
+      color: var(--accent-purple);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-purple);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+      }
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 16px;
+    }
+
+    .section-label svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+    }
+
+    .section-title .gradient-text {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-desc {
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      color: var(--text-secondary);
+      max-width: 620px;
+      line-height: 1.7;
+    }
+
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out), border-color 0.5s var(--ease-out);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(168, 85, 247, 0.08);
+      border-color: rgba(168, 85, 247, 0.15);
+    }
+
+    /* ============================================================
+       AMBIENT GLOWS (background decoration)
+       ============================================================ */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+    #main-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      background: rgba(6, 6, 12, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-glass);
+      transition: background 0.3s;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 72px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .nav-logo .logo-text-k {
+      color: var(--accent-purple);
+    }
+
+    .nav-logo .logo-text-rest {
+      color: var(--text-primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.25s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent-purple);
+      border-radius: 2px;
+      transition: width 0.35s var(--ease-out);
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: var(--gradient-hero);
+      color: #fff;
+      transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
+    }
+
+    .nav-cta:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 30px rgba(168, 85, 247, 0.3);
+    }
+
+    .nav-mobile-toggle {
+      display: none;
+      color: var(--text-primary);
+    }
+
+    /* ============================================================
+       HERO SECTION
+       ============================================================ */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+
+    #hero .glow-orb.a {
+      width: 600px;
+      height: 600px;
+      top: -150px;
+      left: -200px;
+      background: rgba(168, 85, 247, 0.15);
+    }
+
+    #hero .glow-orb.b {
+      width: 500px;
+      height: 500px;
+      bottom: -100px;
+      right: -150px;
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    #hero .glow-orb.c {
+      width: 300px;
+      height: 300px;
+      top: 40%;
+      left: 60%;
+      background: rgba(236, 72, 153, 0.08);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 900px;
+    }
+
+    .hero-badge {
+      margin-bottom: 28px;
+    }
+
+    .hero-title {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+    }
+
+    .hero-title .gradient-text {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--gradient-hero);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+
+    .btn-primary:hover::before {
+      transform: translateX(100%);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(168, 85, 247, 0.35);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      border: 1px solid var(--border-glass);
+      transition: transform 0.3s var(--ease-out), border-color 0.3s, background 0.3s;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      border-color: rgba(168, 85, 247, 0.3);
+      background: rgba(168, 85, 247, 0.06);
+    }
+
+    .hero-image-wrapper {
+      position: relative;
+      z-index: 1;
+      margin-top: 60px;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-image-wrapper img {
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-glass);
+      box-shadow: 0 40px 120px rgba(168, 85, 247, 0.15), 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-image-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: var(--gradient-hero);
+      border-radius: var(--radius-xl);
+      opacity: 0.15;
+      z-index: -1;
+      filter: blur(1px);
+    }
+
+    /* Floating stats */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-top: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .hero-stat-val {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       FEATURES — OVERVIEW BENTO GRID
+       ============================================================ */
+    #features {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    #features .glow-orb.a {
+      width: 500px;
+      height: 500px;
+      top: 10%;
+      right: -200px;
+      background: rgba(34, 211, 238, 0.08);
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .features-header .section-desc {
+      margin: 0 auto;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .bento-item {
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bento-item.span-2 {
+      grid-column: span 2;
+    }
+
+    .bento-item.span-row-2 {
+      grid-row: span 2;
+    }
+
+    .bento-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(34, 211, 238, 0.1));
+      border: 1px solid rgba(168, 85, 247, 0.15);
+      color: var(--accent-purple);
+      flex-shrink: 0;
+    }
+
+    .bento-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .bento-desc {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .bento-item .feature-img {
+      width: 100%;
+      border-radius: var(--radius-md);
+      margin-top: 12px;
+      border: 1px solid var(--border-glass);
+    }
+
+    /* Color variations for icons */
+    .bento-icon.cyan {
+      color: var(--accent-cyan);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.05));
+      border-color: rgba(34, 211, 238, 0.15);
+    }
+
+    .bento-icon.pink {
+      color: var(--accent-pink);
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05));
+      border-color: rgba(236, 72, 153, 0.15);
+    }
+
+    .bento-icon.green {
+      color: var(--accent-green);
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(52, 211, 153, 0.05));
+      border-color: rgba(52, 211, 153, 0.15);
+    }
+
+    .bento-icon.orange {
+      color: var(--accent-orange);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.05));
+      border-color: rgba(249, 115, 22, 0.15);
+    }
+
+    .bento-icon.yellow {
+      color: var(--accent-yellow);
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.05));
+      border-color: rgba(250, 204, 21, 0.15);
+    }
+
+    /* ============================================================
+       DEEP-DIVE SECTIONS (Mixer / Virtual Devices / Soundboard)
+       ============================================================ */
+    .deep-dive {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    .deep-dive .glow-orb {
+      width: 400px;
+      height: 400px;
+    }
+
+    .dd-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .dd-layout.reverse {
+      direction: rtl;
+    }
+
+    .dd-layout.reverse>* {
+      direction: ltr;
+    }
+
+    .dd-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dd-feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .dd-feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .dd-feature-list li .check {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--accent-green);
+      font-size: 0.75rem;
+      margin-top: 2px;
+    }
+
+    .dd-image-wrapper {
+      position: relative;
+    }
+
+    .dd-image-wrapper img {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-glass);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+      transition: transform 0.6s var(--ease-out);
+    }
+
+    .dd-image-wrapper:hover img {
+      transform: scale(1.02);
+    }
+
+    .dd-image-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, transparent 60%, rgba(6, 6, 12, 0.6) 100%);
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       HOW IT WORKS
+       ============================================================ */
+    #how-it-works {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    .hiw-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .hiw-header .section-desc {
+      margin: 0 auto;
+    }
+
+    .hiw-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+
+    .hiw-steps::before {
+      content: '';
+      position: absolute;
+      top: 38px;
+      left: 12.5%;
+      right: 12.5%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-purple), var(--accent-cyan), transparent);
+      opacity: 0.25;
+    }
+
+    .hiw-step {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hiw-step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-glass);
+      color: var(--accent-purple);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.1);
+    }
+
+    .hiw-step-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .hiw-step-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       PRICING
+       ============================================================ */
+    #pricing {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    #pricing .glow-orb {
+      width: 500px;
+      height: 500px;
+      top: 30%;
+      left: -200px;
+      background: rgba(168, 85, 247, 0.08);
+    }
+
+    .pricing-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .pricing-header .section-desc {
+      margin: 0 auto;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .pricing-card {
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      border-color: rgba(168, 85, 247, 0.25);
+      background: linear-gradient(160deg, rgba(168, 85, 247, 0.08) 0%, var(--bg-card) 100%);
+    }
+
+    .pricing-card.featured::before {
+      content: 'MOST POPULAR';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 18px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: var(--gradient-hero);
+      color: #fff;
+    }
+
+    .pricing-plan-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .pricing-amount {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .pricing-amount .currency {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .pricing-amount .value {
+      font-size: 3.2rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .pricing-amount .period {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .pricing-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .pricing-features li .pf-check {
+      color: var(--accent-green);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .pricing-features li .pf-x {
+      color: var(--text-muted);
+      font-size: 1rem;
+      flex-shrink: 0;
+      opacity: 0.4;
+    }
+
+    .pricing-cta {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: 1px solid var(--border-glass);
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .pricing-cta:hover {
+      border-color: rgba(168, 85, 247, 0.3);
+      background: rgba(168, 85, 247, 0.08);
+    }
+
+    .pricing-card.featured .pricing-cta {
+      background: var(--gradient-hero);
+      border: none;
+      color: #fff;
+    }
+
+    .pricing-card.featured .pricing-cta:hover {
+      box-shadow: 0 8px 30px rgba(168, 85, 247, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================================
+       TESTIMONIALS
+       ============================================================ */
+    #testimonials {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    .testimonials-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .testimonials-header .section-desc {
+      margin: 0 auto;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .testimonial-card {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .testimonial-stars {
+      display: flex;
+      gap: 4px;
+      color: var(--accent-yellow);
+      font-size: 1rem;
+    }
+
+    .testimonial-quote {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      font-style: italic;
+      flex: 1;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: var(--gradient-card);
+      border: 1px solid var(--border-glass);
+    }
+
+    .testimonial-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .testimonial-role {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       CTA SECTION
+       ============================================================ */
+    #cta {
+      position: relative;
+      padding: var(--section-pad) 0;
+      overflow: hidden;
+    }
+
+    .cta-box {
+      position: relative;
+      padding: 72px 48px;
+      border-radius: var(--radius-xl);
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(160deg, rgba(168, 85, 247, 0.1) 0%, rgba(34, 211, 238, 0.06) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-glow);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .cta-box .section-title {
+      margin-bottom: 16px;
+    }
+
+    .cta-box .section-desc {
+      margin: 0 auto 36px;
+    }
+
+    .cta-box .hero-actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    #footer {
+      border-top: 1px solid var(--border-glass);
+      padding: 48px 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-copy {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* ============================================================
+       SCROLL ANIMATIONS (reveal)
+       ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal.delay-1 {
+      transition-delay: 0.1s;
+    }
+
+    .reveal.delay-2 {
+      transition-delay: 0.2s;
+    }
+
+    .reveal.delay-3 {
+      transition-delay: 0.3s;
+    }
+
+    .reveal.delay-4 {
+      transition-delay: 0.4s;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .bento-item.span-2 {
+        grid-column: span 1;
+      }
+
+      .dd-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .dd-layout.reverse {
+        direction: ltr;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .hiw-steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hiw-steps::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .nav-mobile-toggle {
+        display: flex;
+      }
+
+      .bento-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .soundboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .hiw-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stats {
+        gap: 24px;
+      }
+
+      .cta-box {
+        padding: 48px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .soundboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mixer-channels {
+        gap: 10px;
+      }
+
+      .mixer-channel {
+        min-width: 90px;
+        padding: 14px 10px;
+      }
+    }
+
+    /* Mobile nav overlay */
+    .mobile-nav-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(6, 6, 12, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .mobile-nav-overlay.open {
+      display: flex;
+    }
+
+    .mobile-nav-overlay a {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+
+    .mobile-nav-overlay a:hover {
+      color: var(--text-primary);
+    }
+
+    .mobile-nav-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      font-size: 1.6rem;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================================
+       NAVIGATION
+       ========================================================= -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo" id="nav-logo">
+        <!-- Kangaroo SVG icon -->
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="17" stroke="url(#logoGrad)" stroke-width="2" fill="none" />
+          <path
+            d="M12 26 C12 18 14 12 18 10 C22 12 26 16 26 22 L24 26 M18 10 L16 6 M18 10 L20 7 M14 20 C16 19 18 20 18 22 M22 18 C22 20 21 22 20 24"
+            stroke="url(#logoGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+              <stop stop-color="#a855f7" />
+              <stop offset="1" stop-color="#22d3ee" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <span><span class="logo-text-k">Kangaroo</span> <span class="logo-text-rest">Kaster</span></span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#mixer-section">Mixer</a></li>
+        <li><a href="#virtual-devices-section">Virtual Devices</a></li>
+        <li><a href="#sounds-section">Sounds</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+      </ul>
+      <a href="#cta" class="nav-cta" id="nav-cta-btn">
+        Download Free
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M8 2v10M4 8l4 4 4-4M2 14h12" />
+        </svg>
+      </a>
+      <button class="nav-mobile-toggle" id="mobile-toggle" aria-label="Open menu">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="8" x2="24" y2="8" />
+          <line x1="4" y1="14" x2="24" y2="14" />
+          <line x1="4" y1="20" x2="24" y2="20" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav overlay -->
+  <div class="mobile-nav-overlay" id="mobile-nav">
+    <button class="mobile-nav-close" id="mobile-close" aria-label="Close menu">&times;</button>
+    <a href="#features" class="mobile-nav-link">Features</a>
+    <a href="#mixer-section" class="mobile-nav-link">Mixer</a>
+    <a href="#virtual-devices-section" class="mobile-nav-link">Virtual Devices</a>
+    <a href="#sounds-section" class="mobile-nav-link">Sounds</a>
+    <a href="#pricing" class="mobile-nav-link">Pricing</a>
+    <a href="#cta" class="btn-primary" style="margin-top:12px;">Download Free</a>
+  </div>
+
+  <!-- =========================================================
+       HERO
+       ========================================================= -->
+  <section id="hero">
+    <div class="glow-orb a"></div>
+    <div class="glow-orb b"></div>
+    <div class="glow-orb c"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge">Now in Public Beta</span>
+      </div>
+
+      <h1 class="hero-title">
+        The <span class="gradient-text">Greatest Caster App</span><br />Ever Built
+      </h1>
+
+      <p class="hero-desc">
+        Professional-grade mixer, virtual audio devices, and a soundboard that slaps — all in one breathtaking
+        interface. Stream, cast, and create like never before.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#cta" class="btn-primary" id="hero-download-btn">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M10 3v11M5 10l5 5 5-5" />
+            <path d="M3 17h14" />
+          </svg>
+          Download for Free
+        </a>
+        <a href="#features" class="btn-secondary" id="hero-learn-btn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21" transform="scale(0.85) translate(1,1)" />
+          </svg>
+          See All Features
+        </a>
+      </div>
+
+      <div class="hero-image-wrapper reveal">
+        <img src="hero_app_overview.png" alt="Kangaroo Kaster — Main Dashboard" loading="eager" id="hero-app-image" />
+      </div>
+
+      <div class="hero-stats reveal delay-2">
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="stat-users">250K+</div>
+          <div class="hero-stat-label">Active Casters</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">
+            < 2ms</div>
+              <div class="hero-stat-label">Audio Latency</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-val">99.97%</div>
+            <div class="hero-stat-label">Uptime</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-val">4K 60fps</div>
+            <div class="hero-stat-label">Max Resolution</div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <!-- =========================================================
+       FEATURES — BENTO GRID OVERVIEW
+       ========================================================= -->
+  <section id="features">
+    <div class="glow-orb a"></div>
+    <div class="container">
+      <div class="features-header reveal">
+        <span class="section-label">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          All-in-One Platform
+        </span>
+        <h2 class="section-title">Everything You Need to <span class="gradient-text">Cast Like a Pro</span></h2>
+        <p class="section-desc">From professional audio mixing to one-click soundboards, Kangaroo Kaster packs every
+          feature a modern caster needs into a single, stunning app.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- 1 — Mixer (large) -->
+        <div class="bento-item glass-card span-2 reveal" id="feature-mixer">
+          <div class="bento-icon">🎛️</div>
+          <h3 class="bento-title">Pro Audio Mixer</h3>
+          <p class="bento-desc">6-channel professional mixer with per-channel gain, pan, mute/solo, and real-time peak
+            metering. Shape your sound with parametric EQ, compressor, noise gate, and more — all with sub-2ms latency.
+          </p>
+          <img src="mixer_ui.png" alt="Kangaroo Kaster Mixer" class="feature-img" loading="lazy" />
+        </div>
+        <!-- 2 — Virtual Devices -->
+        <div class="bento-item glass-card reveal delay-1" id="feature-vdevices">
+          <div class="bento-icon cyan">🔌</div>
+          <h3 class="bento-title">Virtual Audio Devices</h3>
+          <p class="bento-desc">Create unlimited virtual cables and route audio between any app. Separate game, music,
+            and comms — then send a perfect mix to your stream and monitoring headphones independently.</p>
+        </div>
+        <!-- 3 — Soundboard -->
+        <div class="bento-item glass-card reveal delay-2" id="feature-soundboard">
+          <div class="bento-icon pink">🎵</div>
+          <h3 class="bento-title">Smart Soundboard</h3>
+          <p class="bento-desc">500+ built-in sounds organized by category. Assign hotkeys, adjust per-pad volume, and
+            trigger effects with zero-latency playback. Import your own WAV/MP3/OGG clips too.</p>
+        </div>
+        <!-- 4 — Scene Manager -->
+        <div class="bento-item glass-card reveal" id="feature-scenes">
+          <div class="bento-icon green">🎬</div>
+          <h3 class="bento-title">Scene Manager</h3>
+          <p class="bento-desc">Design complex multi-layer scenes with drag-and-drop. Add webcam, screen capture,
+            overlays, alerts, and text — then switch seamlessly with smooth transitions.</p>
+        </div>
+        <!-- 5 — Multi-Platform -->
+        <div class="bento-item glass-card reveal delay-1" id="feature-multiplatform">
+          <div class="bento-icon orange">📡</div>
+          <h3 class="bento-title">Multi-Platform Casting</h3>
+          <p class="bento-desc">Stream simultaneously to Twitch, YouTube, Kick, Facebook, and custom RTMP endpoints.
+            Manage chat from all platforms in one unified panel.</p>
+        </div>
+        <!-- 6 — Performance -->
+        <div class="bento-item glass-card reveal delay-2" id="feature-performance">
+          <div class="bento-icon yellow">⚡</div>
+          <h3 class="bento-title">GPU-Accelerated Engine</h3>
+          <p class="bento-desc">Hardware encoding (NVENC, AMF, QSV) delivers 4K 60fps with minimal CPU usage. Our
+            rendering engine keeps your game running at maximum performance while you cast.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       DEEP DIVE — MIXER
+       ========================================================= -->
+  <section class="deep-dive" id="mixer-section">
+    <div class="glow-orb" style="top:-100px;left:-100px;background:rgba(168,85,247,0.1);"></div>
+    <div class="container">
+      <div class="dd-layout">
+        <div class="dd-content reveal">
+          <span class="section-label">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="4" y="2" width="4" height="20" rx="1" />
+              <rect x="10" y="6" width="4" height="16" rx="1" />
+              <rect x="16" y="4" width="4" height="18" rx="1" />
+            </svg>
+            Professional Mixer
+          </span>
+          <h2 class="section-title">Studio-Grade Audio <span class="gradient-text">Mixing Engine</span></h2>
+          <p class="section-desc">Take full control of every audio source with a mixer that rivals hardware consoles
+            costing thousands.</p>
+          <ul class="dd-feature-list">
+            <li><span class="check">✓</span> <strong>6+ Independent Channels</strong> — Microphone, Desktop, Browser,
+              Music, Discord, Game, and custom sources</li>
+            <li><span class="check">✓</span> <strong>Per-Channel DSP</strong> — Parametric EQ (10-band), Compressor,
+              Noise Gate, De-Esser, and Limiter</li>
+            <li><span class="check">✓</span> <strong>Real-Time Peak Metering</strong> — Color-coded VU meters with peak
+              hold, RMS, and loudness (LUFS) display</li>
+            <li><span class="check">✓</span> <strong>Mute / Solo / Link</strong> — Instantly isolate or silence
+              channels. Link stereo pairs for precise control</li>
+            <li><span class="check">✓</span> <strong>Mix-Minus Support</strong> — Prevent echo by excluding specific
+              sources from specific outputs</li>
+            <li><span class="check">✓</span> <strong>VST3 Plugin Support</strong> — Load your favorite third-party audio
+              plugins directly into the chain</li>
+            <li><span class="check">✓</span> <strong>Sub-2ms Latency</strong> — ASIO and WASAPI exclusive mode for
+              professional-grade timing</li>
+            <li><span class="check">✓</span> <strong>Master Bus Processing</strong> — Apply master limiting and loudness
+              normalization to your final output</li>
+          </ul>
+        </div>
+        <div class="dd-image-wrapper reveal delay-2">
+          <img src="mixer_ui.png" alt="Kangaroo Kaster Professional Mixer Interface" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       DEEP DIVE — VIRTUAL DEVICES
+       ========================================================= -->
+  <section class="deep-dive" id="virtual-devices-section">
+    <div class="glow-orb" style="bottom:-100px;right:-100px;background:rgba(34,211,238,0.1);"></div>
+    <div class="container">
+      <div class="dd-layout reverse">
+        <div class="dd-content reveal">
+          <span class="section-label">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+            Virtual Audio Devices
+          </span>
+          <h2 class="section-title">Route Audio <span class="gradient-text">Anywhere</span>, Effortlessly</h2>
+          <p class="section-desc">Create virtual cables and routing matrices that let you send any audio source to any
+            destination — without tangled drivers.</p>
+          <ul class="dd-feature-list">
+            <li><span class="check">✓</span> <strong>Unlimited Virtual Cables</strong> — Create as many virtual
+              input/output devices as you need</li>
+            <li><span class="check">✓</span> <strong>Visual Routing Matrix</strong> — Drag-and-drop audio connections
+              with an intuitive node-based graph</li>
+            <li><span class="check">✓</span> <strong>Per-App Capture</strong> — Capture audio from specific applications
+              without grabbing the entire system</li>
+            <li><span class="check">✓</span> <strong>Sample Rate Conversion</strong> — Automatic SRC handles 44.1kHz /
+              48kHz / 96kHz seamlessly</li>
+            <li><span class="check">✓</span> <strong>Monitor Mix</strong> — Create a separate headphone mix with
+              different levels than your stream</li>
+            <li><span class="check">✓</span> <strong>Stream + Recording Split</strong> — Send different audio mixes to
+              your stream and local recording simultaneously</li>
+            <li><span class="check">✓</span> <strong>Loopback Prevention</strong> — Intelligent feedback detection stops
+              audio loops before they happen</li>
+            <li><span class="check">✓</span> <strong>Zero-Install Driver</strong> — Our kernel-level driver installs
+              silently with the app — no reboots required</li>
+          </ul>
+        </div>
+        <div class="dd-image-wrapper reveal delay-2">
+          <img src="virtual_devices_ui.png" alt="Kangaroo Kaster Virtual Audio Devices" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       DEEP DIVE — SOUNDS / SOUNDBOARD
+       ========================================================= -->
+  <section class="deep-dive" id="sounds-section">
+    <div class="glow-orb" style="top:50%;left:-150px;background:rgba(236,72,153,0.08);"></div>
+    <div class="container">
+      <div class="dd-layout">
+        <div class="dd-content reveal">
+          <span class="section-label">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+            Smart Soundboard
+          </span>
+          <h2 class="section-title">500+ Sounds at <span class="gradient-text">Your Fingertips</span></h2>
+          <p class="section-desc">Trigger sound effects, stingers, music cues, and custom clips instantly — with hotkey
+            bindings, category search, and per-pad mixing.</p>
+          <ul class="dd-feature-list">
+            <li><span class="check">✓</span> <strong>500+ Built-in Sounds</strong> — Curated library: applause, air
+              horn, drum rolls, transitions, music stingers, and more</li>
+            <li><span class="check">✓</span> <strong>16-Pad Grid Layout</strong> — Color-coded pads with waveform
+              previews for instant visual recognition</li>
+            <li><span class="check">✓</span> <strong>Hotkey Bindings</strong> — Assign any keyboard shortcut or Stream
+              Deck button to any pad</li>
+            <li><span class="check">✓</span> <strong>Per-Pad Volume & Routing</strong> — Control individual pad volume
+              and choose which output device it plays through</li>
+            <li><span class="check">✓</span> <strong>Custom Sound Import</strong> — Drag-and-drop WAV, MP3, OGG, FLAC
+              files to create your own pads</li>
+            <li><span class="check">✓</span> <strong>Category Browser</strong> — Browse by Favorites, Animals, Comedy,
+              Sci-Fi, Sports, Musical, and 15+ more categories</li>
+            <li><span class="check">✓</span> <strong>Overlap & Queue Modes</strong> — Stack multiple sounds or queue
+              them to play sequentially</li>
+            <li><span class="check">✓</span> <strong>Live Waveform Display</strong> — See real-time waveform animation
+              while sounds play</li>
+          </ul>
+        </div>
+        <div class="dd-image-wrapper reveal delay-2">
+          <img src="soundboard_ui.png" alt="Kangaroo Kaster Soundboard" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       HOW IT WORKS
+       ========================================================= -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="hiw-header reveal">
+        <span class="section-label">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          Get Started in Minutes
+        </span>
+        <h2 class="section-title">From Download to <span class="gradient-text">Live in 4 Steps</span></h2>
+        <p class="section-desc">No complicated setup, no driver nightmares. Kangaroo Kaster gets you casting in record
+          time.</p>
+      </div>
+
+      <div class="hiw-steps">
+        <div class="hiw-step reveal" id="step-1">
+          <div class="hiw-step-num">1</div>
+          <h3 class="hiw-step-title">Download & Install</h3>
+          <p class="hiw-step-desc">One-click installer for Windows, macOS, and Linux. Virtual audio drivers set up
+            automatically.</p>
+        </div>
+        <div class="hiw-step reveal delay-1" id="step-2">
+          <div class="hiw-step-num">2</div>
+          <h3 class="hiw-step-title">Configure Your Sources</h3>
+          <p class="hiw-step-desc">Add your microphone, game capture, webcam, and browser sources. The wizard detects
+            hardware for you.</p>
+        </div>
+        <div class="hiw-step reveal delay-2" id="step-3">
+          <div class="hiw-step-num">3</div>
+          <h3 class="hiw-step-title">Shape Your Sound</h3>
+          <p class="hiw-step-desc">Dial in your mix with the pro mixer, set up virtual devices for routing, and load
+            your soundboard.</p>
+        </div>
+        <div class="hiw-step reveal delay-3" id="step-4">
+          <div class="hiw-step-num">4</div>
+          <h3 class="hiw-step-title">Go Live!</h3>
+          <p class="hiw-step-desc">Hit the Go Live button. Stream to multiple platforms simultaneously with one click.
+            You're on air.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PRICING
+       ========================================================= -->
+  <section id="pricing">
+    <div class="glow-orb" style="top:30%;left:-200px;background:rgba(168,85,247,0.08);"></div>
+    <div class="container">
+      <div class="pricing-header reveal">
+        <span class="section-label">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+          </svg>
+          Simple Pricing
+        </span>
+        <h2 class="section-title">Start Free. <span class="gradient-text">Upgrade When Ready.</span></h2>
+        <p class="section-desc">Every plan includes the core mixer, virtual devices, and soundboard. Premium unlocks the
+          full power.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Free -->
+        <div class="pricing-card glass-card reveal" id="pricing-free">
+          <div class="pricing-plan-name">Free</div>
+          <div class="pricing-amount">
+            <span class="currency">$</span><span class="value">0</span><span class="period">/ forever</span>
+          </div>
+          <ul class="pricing-features">
+            <li><span class="pf-check">✓</span> 4-channel mixer</li>
+            <li><span class="pf-check">✓</span> 2 virtual devices</li>
+            <li><span class="pf-check">✓</span> 50 built-in sounds</li>
+            <li><span class="pf-check">✓</span> 1080p 30fps streaming</li>
+            <li><span class="pf-check">✓</span> Single platform output</li>
+            <li><span class="pf-x">✕</span> No VST3 plugins</li>
+            <li><span class="pf-x">✕</span> No custom sound import</li>
+          </ul>
+          <a href="#cta" class="pricing-cta" id="pricing-free-cta">Get Started Free</a>
+        </div>
+
+        <!-- Pro (Featured) -->
+        <div class="pricing-card glass-card featured reveal delay-1" id="pricing-pro">
+          <div class="pricing-plan-name">Pro</div>
+          <div class="pricing-amount">
+            <span class="currency">$</span><span class="value">12</span><span class="period">/ month</span>
+          </div>
+          <ul class="pricing-features">
+            <li><span class="pf-check">✓</span> 12-channel mixer</li>
+            <li><span class="pf-check">✓</span> Unlimited virtual devices</li>
+            <li><span class="pf-check">✓</span> 500+ sounds + custom import</li>
+            <li><span class="pf-check">✓</span> 4K 60fps streaming</li>
+            <li><span class="pf-check">✓</span> Multi-platform simultaneous</li>
+            <li><span class="pf-check">✓</span> VST3 plugin support</li>
+            <li><span class="pf-check">✓</span> Priority support</li>
+          </ul>
+          <a href="#cta" class="pricing-cta" id="pricing-pro-cta">Start 14-Day Free Trial</a>
+        </div>
+
+        <!-- Studio -->
+        <div class="pricing-card glass-card reveal delay-2" id="pricing-studio">
+          <div class="pricing-plan-name">Studio</div>
+          <div class="pricing-amount">
+            <span class="currency">$</span><span class="value">29</span><span class="period">/ month</span>
+          </div>
+          <ul class="pricing-features">
+            <li><span class="pf-check">✓</span> 32-channel mixer</li>
+            <li><span class="pf-check">✓</span> Unlimited everything</li>
+            <li><span class="pf-check">✓</span> Team collaboration</li>
+            <li><span class="pf-check">✓</span> 8K recording support</li>
+            <li><span class="pf-check">✓</span> API & webhook access</li>
+            <li><span class="pf-check">✓</span> White-label branding</li>
+            <li><span class="pf-check">✓</span> Dedicated account manager</li>
+          </ul>
+          <a href="#cta" class="pricing-cta" id="pricing-studio-cta">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       TESTIMONIALS
+       ========================================================= -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="testimonials-header reveal">
+        <span class="section-label">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg>
+          What Casters Say
+        </span>
+        <h2 class="section-title">Loved by <span class="gradient-text">250,000+ Creators</span></h2>
+        <p class="section-desc">Don't just take our word for it — hear from the creators who switched to Kangaroo
+          Kaster.</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card glass-card reveal" id="testimonial-1">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"The mixer alone is worth switching. I ditched Voicemeeter, my physical mixer,
+            and two other apps — Kangaroo Kaster replaced them all. The virtual device routing is pure magic."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">🎮</div>
+            <div>
+              <div class="testimonial-name">Alex Rivera</div>
+              <div class="testimonial-role">Twitch Partner · 45K followers</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card glass-card reveal delay-1" id="testimonial-2">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"The soundboard is incredible. 500+ sounds, instant hotkeys, and it plays through
+            a virtual device so my stream gets it but my Discord doesn't. Absolute game-changer for entertainment
+            streams."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">🎤</div>
+            <div>
+              <div class="testimonial-name">Priya Sharma</div>
+              <div class="testimonial-role">YouTube Creator · 120K subs</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card glass-card reveal delay-2" id="testimonial-3">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"We run a 24/7 live production for our esports org. Kangaroo Kaster's Studio plan
+            gives us 32 channels, API access, and team collab. It's replaced a $15K hardware setup."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">🏆</div>
+            <div>
+              <div class="testimonial-name">Marcus Chen</div>
+              <div class="testimonial-role">Head of Production · Apex Legends League</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       CTA
+       ========================================================= -->
+  <section id="cta">
+    <div class="container">
+      <div class="cta-box reveal">
+        <span class="section-label" style="justify-content:center;">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M13 2L3 14h9l-1 10 10-12h-9l1-10z" />
+          </svg>
+          Ready to Cast?
+        </span>
+        <h2 class="section-title">Download Kangaroo Kaster <span class="gradient-text">Today — It's Free</span></h2>
+        <p class="section-desc" style="margin:0 auto 36px;">Join 250,000+ creators who already upgraded their streams.
+          Available on Windows, macOS, and Linux.</p>
+        <div class="hero-actions" style="justify-content:center;">
+          <a href="#" class="btn-primary" id="cta-download-btn">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M10 3v11M5 10l5 5 5-5" />
+              <path d="M3 17h14" />
+            </svg>
+            Download for Windows
+          </a>
+          <a href="#" class="btn-secondary" id="cta-mac-btn">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+            </svg>
+            Download for Mac
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       FOOTER
+       ========================================================= -->
+  <footer id="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-copy">© 2026 Kangaroo Kaster. All rights reserved.</div>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================
+       JAVASCRIPT
+       ========================================================= -->
+  <script>
+    /* ====== SCROLL REVEAL ====== */
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ====== MOBILE NAV ====== */
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileNav = document.getElementById('mobile-nav');
+    const mobileClose = document.getElementById('mobile-close');
+    mobileToggle.addEventListener('click', () => mobileNav.classList.add('open'));
+    mobileClose.addEventListener('click', () => mobileNav.classList.remove('open'));
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+      link.addEventListener('click', () => mobileNav.classList.remove('open'));
+    });
+
+    /* ====== INTERACTIVE MIXER ====== */
+    const mixerData = [
+      { name: 'MIC', icon: '🎙️', color: '#a855f7', vol: 75 },
+      { name: 'DESKTOP', icon: '🖥️', color: '#6366f1', vol: 60 },
+      { name: 'BROWSER', icon: '🌐', color: '#22d3ee', vol: 45 },
+      { name: 'MUSIC', icon: '🎵', color: '#ec4899', vol: 55 },
+      { name: 'DISCORD', icon: '💬', color: '#34d399', vol: 40 },
+      { name: 'GAME', icon: '🎮', color: '#f97316', vol: 70 },
+    ];
+
+    const mixerChannelsEl = document.getElementById('mixer-channels');
+    const channelStates = mixerData.map(d => ({ vol: d.vol, muted: false }));
+
+    function meterGradient(color) {
+      return `linear-gradient(to top, ${color}88, ${color})`;
+    }
+
+    mixerData.forEach((ch, i) => {
+      const el = document.createElement('div');
+      el.className = 'mixer-channel';
+      el.id = `mixer-ch-${i}`;
+      el.innerHTML = `
+        <div class="mixer-channel-icon">${ch.icon}</div>
+        <div class="mixer-channel-name">${ch.name}</div>
+        <div class="mixer-meter" id="meter-${i}">
+          <div class="mixer-meter-fill" id="meter-fill-${i}" style="height:${ch.vol}%;background:${meterGradient(ch.color)};"></div>
+        </div>
+        <div class="mixer-slider-wrap">
+          <input type="range" min="0" max="100" value="${ch.vol}" id="fader-${i}" aria-label="${ch.name} volume" />
+        </div>
+        <div class="mixer-vol-label" id="vol-label-${i}">${ch.vol}%</div>
+        <button class="mixer-mute-btn" id="mute-${i}">MUTE</button>
+      `;
+      mixerChannelsEl.appendChild(el);
+
+      const fader = document.getElementById(`fader-${i}`);
+      const meterFill = document.getElementById(`meter-fill-${i}`);
+      const volLabel = document.getElementById(`vol-label-${i}`);
+      const muteBtn = document.getElementById(`mute-${i}`);
+
+      fader.addEventListener('input', () => {
+        channelStates[i].vol = parseInt(fader.value);
+        volLabel.textContent = fader.value + '%';
+        if (!channelStates[i].muted) {
+          meterFill.style.height = fader.value + '%';
+        }
+      });
+
+      muteBtn.addEventListener('click', () => {
+        channelStates[i].muted = !channelStates[i].muted;
+        muteBtn.classList.toggle('active');
+        meterFill.style.height = channelStates[i].muted ? '0%' : channelStates[i].vol + '%';
+      });
+    });
+
+    /* Animate meter jitter */
+    function animateMeters() {
+      channelStates.forEach((st, i) => {
+        if (st.muted) return;
+        const fill = document.getElementById(`meter-fill-${i}`);
+        const jitter = (Math.random() - 0.5) * 10;
+        const h = Math.max(0, Math.min(100, st.vol + jitter));
+        fill.style.height = h + '%';
+      });
+      requestAnimationFrame(animateMeters);
+    }
+    animateMeters();
+
+    /* ====== INTERACTIVE SOUNDBOARD ====== */
+    const pads = [
+      { name: 'Applause', icon: '👏', bg: 'linear-gradient(135deg,#7c3aed,#a855f7)' },
+      { name: 'Air Horn', icon: '📯', bg: 'linear-gradient(135deg,#0891b2,#22d3ee)' },
+      { name: 'Drum Roll', icon: '🥁', bg: 'linear-gradient(135deg,#be185d,#ec4899)' },
+      { name: 'Sad Trombone', icon: '🎺', bg: 'linear-gradient(135deg,#c2410c,#f97316)' },
+      { name: 'Victory', icon: '🏆', bg: 'linear-gradient(135deg,#15803d,#34d399)' },
+      { name: 'Whoosh', icon: '💨', bg: 'linear-gradient(135deg,#1d4ed8,#60a5fa)' },
+      { name: 'Boing', icon: '🦘', bg: 'linear-gradient(135deg,#be185d,#f472b6)' },
+      { name: 'Laugh Track', icon: '😂', bg: 'linear-gradient(135deg,#a16207,#facc15)' },
+      { name: 'Laser Blast', icon: '🔫', bg: 'linear-gradient(135deg,#6d28d9,#8b5cf6)' },
+      { name: 'Canned Laugh', icon: '📺', bg: 'linear-gradient(135deg,#0e7490,#67e8f9)' },
+      { name: 'Rimshot', icon: '🪘', bg: 'linear-gradient(135deg,#9f1239,#fb7185)' },
+      { name: 'Gong', icon: '🔔', bg: 'linear-gradient(135deg,#b45309,#fbbf24)' },
+      { name: 'Record Scratch', icon: '💿', bg: 'linear-gradient(135deg,#047857,#6ee7b7)' },
+      { name: 'Police Siren', icon: '🚨', bg: 'linear-gradient(135deg,#1e40af,#93c5fd)' },
+      { name: 'Explosion', icon: '💥', bg: 'linear-gradient(135deg,#b91c1c,#f87171)' },
+      { name: 'Crickets', icon: '🦗', bg: 'linear-gradient(135deg,#065f46,#34d399)' },
+    ];
+
+    const sbGrid = document.getElementById('soundboard-grid');
+    pads.forEach((p, i) => {
+      const pad = document.createElement('button');
+      pad.className = 'sound-pad';
+      pad.id = `pad-${i}`;
+      pad.style.background = p.bg;
+      pad.setAttribute('aria-label', `Play ${p.name}`);
+
+      // Create random wave bars
+      let waveBars = '';
+      for (let b = 0; b < 8; b++) {
+        const h = Math.floor(Math.random() * 14) + 4;
+        waveBars += `<span style="height:${h}px"></span>`;
+      }
+
+      pad.innerHTML = `
+        <span class="pad-icon">${p.icon}</span>
+        <span>${p.name}</span>
+        <div class="pad-wave">${waveBars}</div>
+      `;
+
+      pad.addEventListener('click', () => {
+        pad.classList.remove('playing');
+        void pad.offsetWidth; // reflow
+        pad.classList.add('playing');
+
+        // Animate wave bars
+        const bars = pad.querySelectorAll('.pad-wave span');
+        let ticks = 0;
+        const anim = setInterval(() => {
+          bars.forEach(bar => { bar.style.height = Math.floor(Math.random() * 18 + 3) + 'px'; });
+          ticks++;
+          if (ticks > 15) { clearInterval(anim); bars.forEach(bar => { bar.style.height = Math.floor(Math.random() * 14 + 4) + 'px'; }); }
+        }, 60);
+      });
+
+      sbGrid.appendChild(pad);
+    });
+
+    /* ====== NAV SCROLL SHADOW ====== */
+    const nav = document.getElementById('main-nav');
+    window.addEventListener('scroll', () => {
+      nav.style.background = window.scrollY > 50 ? 'rgba(6,6,12,0.92)' : 'rgba(6,6,12,0.7)';
+    });
+  </script>
+</body>
+
+</html>
